@@ -1,99 +1,74 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "🚀 Démarrage de l'initialisation Stateless Elfenec..."
+echo "🚀 Bootstrap stateless dotfiles"
 
-DOTFILES_DIR="$(pwd)"
-USER_NAME="$(whoami)"
-
-# Chemins locaux pour Nix et Devbox
-LOCAL_NIX="$DOTFILES_DIR/.nix"
-LOCAL_DEVBOX="$DOTFILES_DIR/.devbox"
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$DOTFILES_DIR"
 
 ###############################################
-# 1. Installation de Nix local si absent
+# 1. Nix — installation locale, non intrusive
 ###############################################
-if [ ! -d "$LOCAL_NIX" ]; then
-    echo "📦 Nix absent. Installation locale dans $LOCAL_NIX..."
-
-    mkdir -p "$LOCAL_NIX"
-
-    # Télécharger et installer Nix local
-    curl -L https://nixos.org/nix/install | sh -s -- --no-daemon --no-modify-profile --prefix "$LOCAL_NIX"
-fi
-
-# Configurer les variables d'environnement pour la session
-export NIX_USER_PROFILE_DIR="$LOCAL_NIX/profile"
-export NIX_PATH="$LOCAL_NIX"
-export PATH="$LOCAL_NIX/bin:$PATH"
-export NIX_EXTRA_EXPERIMENTAL_FEATURES="nix-command flakes ca-derivations fetch-closure"
-
-# Vérifier Nix
 if ! command -v nix >/dev/null; then
-    echo "❌ Nix non trouvé après installation."
-    exit 1
+  echo "📦 Installing Nix (single-user, non-intrusive)"
+  curl -L https://nixos.org/nix/install | sh -s -- --no-daemon
+fi
+
+# Charger Nix pour la session courante
+if [ -f "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
+  # shellcheck disable=SC1090
+  source "$HOME/.nix-profile/etc/profile.d/nix.sh"
 fi
 
 ###############################################
-# 2. Installation de Devbox locale si absent
+# 2. Devbox (user-space, via script officiel)
 ###############################################
-if [ ! -d "$LOCAL_DEVBOX" ]; then
-    echo "📦 Installation de Devbox locale dans $LOCAL_DEVBOX..."
-    curl -fsSL https://get.jetpack.io/devbox | bash -s -- --path "$LOCAL_DEVBOX"
-fi
-
-# Configurer Devbox pour la session
-export DEVBOX_HOME="$LOCAL_DEVBOX"
-export PATH="$LOCAL_DEVBOX/bin:$PATH"
-
 if ! command -v devbox >/dev/null; then
-    echo "❌ Devbox non trouvé après installation."
-    exit 1
+  echo "📦 Installing Devbox"
+  curl -fsSL https://get.jetpack.io/devbox | bash
 fi
 
 ###############################################
-# 3. Créer et activer .envrc pour direnv
-###############################################
-ENVRC="$DOTFILES_DIR/.envrc"
-if [ ! -f "$ENVRC" ]; then
-    echo "use devbox" > "$ENVRC"
-fi
-
-if command -v direnv >/dev/null; then
-    direnv allow "$DOTFILES_DIR"
-fi
-
-###############################################
-# 4. Installation de direnv via Nix local
+# 3. direnv (via Nix profile USER)
 ###############################################
 if ! command -v direnv >/dev/null; then
-    echo "📦 Installation de direnv via Nix local..."
-    nix profile install nixpkgs#direnv
+  echo "📦 Installing direnv (Nix profile)"
+  nix profile install nixpkgs#direnv
 fi
 
 ###############################################
-# 5. Oh My Zsh, P10k & plugins (optionnel)
+# 4. powerlevel10k (DANS le repo)
 ###############################################
-ZSH_CUSTOM="${ZSH_CUSTOM:-$DOTFILES_DIR/powerlevel10k}"
-if [ ! -d "$ZSH_CUSTOM" ]; then
-    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$ZSH_CUSTOM"
+if [ ! -d "$DOTFILES_DIR/powerlevel10k" ]; then
+  echo "🎨 Installing powerlevel10k"
+  git clone --depth=1 https://github.com/romkatv/powerlevel10k.git \
+    "$DOTFILES_DIR/powerlevel10k"
 fi
 
 ###############################################
-# 6. Déploiement des dotfiles
+# 5. Zsh config (symlinks UNIQUEMENT)
 ###############################################
-cp -f "$DOTFILES_DIR/.zshrc" "$DOTFILES_DIR/.p10k.zsh" "$DOTFILES_DIR/devbox.json" "$DOTFILES_DIR/"
+link() {
+  local src="$1"
+  local dst="$2"
+  if [ ! -e "$dst" ]; then
+    ln -s "$src" "$dst"
+  fi
+}
+
+link "$DOTFILES_DIR/.zshrc"   "$HOME/.zshrc"
+link "$DOTFILES_DIR/.p10k.zsh" "$HOME/.p10k.zsh"
 
 ###############################################
-# 7. Installation des packages Devbox
+# 6. Devbox install (DANS le repo)
 ###############################################
-cd "$DOTFILES_DIR"
+echo "🧰 Installing devbox packages"
 devbox install
 
 ###############################################
-# 8. Finalisation
+# 7. Fin
 ###############################################
 echo ""
-echo "✅ Setup terminé avec succès !"
-echo "🚀 Tout est local dans $DOTFILES_DIR, aucun fichier créé en dehors."
-echo "👉 Lance : zsh"
+echo "✅ Bootstrap terminé"
+echo "👉 run once: direnv allow"
+echo "👉 then: zsh"
