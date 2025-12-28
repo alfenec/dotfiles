@@ -41,26 +41,12 @@ Mise à jour des outils : Modifiez devbox.json et lancez devbox update.
 
 Changement de contexte K8s : Utilisez l'alias ctx pour changer de cluster ou ns pour changer de namespace.
 
-Monitoring : Tapez top (btop) ou network (iftop) pour surveiller la machine.
+Monitoring : Tapez top (btop) ou network (iftop) pour surveiller la machine et k9s pour kubernetes
 
 Synchronisation : git pull pour récupérer vos dernières optimisations d'alias ou d'outils.
 
-Fait avec ❤️ par Elfenec pour un monde plus Stateless.
+Fait par Elfenec pour un monde plus Stateless.
 
-
----
-
-### Comment l'ajouter à ton repo ?
-
-1. Crée le fichier : `nano README.md`
-2. Colle le texte ci-dessus.
-3. Sauvegarde et envoie tout sur GitHub :
-   ```bash
-   git add .
-   git commit -m "Add README and final setup"
-   git push origin main
-   ```
-Pourquoi c'est top ?
 Crédibilité : Si quelqu'un tombe sur ton repo, il comprend tout de suite que tu maîtrises les concepts modernes (Nix, Stateless).
 
 Mémoire : Tu n'auras plus jamais à chercher la commande d'installation.
