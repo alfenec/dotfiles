@@ -5,26 +5,33 @@ set -e
 
 echo "🚀 Démarrage de l'initialisation Stateless Elfenec..."
 
-# 1. Installer Nix
+# 1. Installation de Nix avec auto-nettoyage
 if ! command -v nix &> /dev/null; then
-    echo "📦 Installation de Nix..."
+    echo "🧹 Nettoyage des anciens résidus Nix pour éviter les conflits..."
     
-    # On nettoie TOUS les backups possibles qui font échouer l'installeur
-    # On ajoute /etc/zsh/zshrc qui est le coupable actuel
+    # Suppression des fichiers de backup qui bloquent l'installeur
     sudo rm -f /etc/bash.bashrc.backup-before-nix
     sudo rm -f /etc/zsh/zshrc.backup-before-nix
     sudo rm -f /etc/zshrc.backup-before-nix
-    sudo rm -f /etc/bashrc.backup-before-nix
     sudo rm -f /etc/profile.backup-before-nix
+    
+    # Si un dossier /nix existe mais que la commande 'nix' ne répond pas, 
+    # c'est que l'install est corrompue : on rase pour réinstaller proprement.
+    if [ -d "/nix" ]; then
+        echo "⚠️  Dossier /nix détecté mais inactif. Réinitialisation forcée..."
+        sudo systemctl stop nix-daemon.service 2>/dev/null || true
+        sudo rm -rf /nix /etc/nix /root/.nix-profile /root/.nix-defexpr /root/.nix-channels
+    fi
 
-    # L'option --no-modify-profile est vitale ici pour qu'il ne tente plus de créer ces fichiers
+    echo "📦 Installation de Nix (Multi-user)..."
     curl -L https://nixos.org/nix/install | sh -s -- --daemon --yes --no-modify-profile
     
-    # On source pour la session actuelle
+    # Chargement pour la session actuelle
     [ -e /etc/profile.d/nix.sh ] && source /etc/profile.d/nix.sh
 else
-    echo "✅ Nix est déjà présent."
+    echo "✅ Nix est déjà opérationnel."
 fi
+
 
 # 2. Installer Devbox
 if ! command -v devbox &> /dev/null; then
