@@ -31,7 +31,7 @@ Ce dépôt contient ma configuration système **Stateless** et **Agnostique**. L
 Pour déployer cet environnement sur une nouvelle machine, exécutez simplement :
 
 ```bash
-git clone [https://github.com/TON_USER/dotfiles.git](https://github.com/TON_USER/dotfiles.git) && cd dotfiles && bash install.sh
+git clone https://github.com/alfenec/dotfiles.git && cd dotfiles && bash install.sh
 ```
 
 Une fois terminé, redémarrez votre shell :
