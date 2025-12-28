@@ -1,5 +1,25 @@
 ###############################################
-# 1. Oh My Zsh & Plugins
+# 1. Activation de Nix & Devbox
+###############################################
+# Charge Nix
+if [ -e /etc/profile.d/nix.sh ]; then
+  source /etc/profile.d/nix.sh
+fi
+
+# Charge l'environnement Devbox (ajoute les outils au PATH)
+# On utilise la méthode 'shellenv' qui est la plus robuste
+if command -v devbox >/dev/null; then
+  eval "$(devbox shellenv)"
+fi
+
+# Active direnv si présent
+if command -v direnv >/dev/null; then
+  eval "$(direnv hook zsh)"
+fi
+
+
+###############################################
+# 2. Oh My Zsh & Plugins
 ###############################################
 export ZSH="$HOME/.oh-my-zsh"
 
@@ -19,18 +39,10 @@ plugins=(
 source $ZSH/oh-my-zsh.sh
 
 ###############################################
-# 2. Thème Powerlevel10k
+# 3. Thème Powerlevel10k
 ###############################################
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 source ~/powerlevel10k/powerlevel10k.zsh-theme
-
-###############################################
-# 3. Intégration Devbox & Direnv
-###############################################
-if command -v devbox >/dev/null; then
-  eval "$(devbox generate direnv --print-config)"
-  eval "$(direnv hook zsh)"
-fi
 
 ###############################################
 # 4. Alias Confort (eza, bat, btop)
