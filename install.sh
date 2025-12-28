@@ -5,33 +5,28 @@ set -e
 
 echo "🚀 Démarrage de l'initialisation Stateless Elfenec..."
 
-# 1. Installation de Nix avec auto-nettoyage
+# 1. Installer Nix UNIQUEMENT s'il est absent
 if ! command -v nix &> /dev/null; then
-    echo "🧹 Nettoyage des anciens résidus Nix pour éviter les conflits..."
-    
-    # Suppression des fichiers de backup qui bloquent l'installeur
-    sudo rm -f /etc/bash.bashrc.backup-before-nix
-    sudo rm -f /etc/zsh/zshrc.backup-before-nix
-    sudo rm -f /etc/zshrc.backup-before-nix
-    sudo rm -f /etc/profile.backup-before-nix
-    
-    # Si un dossier /nix existe mais que la commande 'nix' ne répond pas, 
-    # c'est que l'install est corrompue : on rase pour réinstaller proprement.
-    if [ -d "/nix" ]; then
-        echo "⚠️  Dossier /nix détecté mais inactif. Réinitialisation forcée..."
-        sudo systemctl stop nix-daemon.service 2>/dev/null || true
-        sudo rm -rf /nix /etc/nix /root/.nix-profile /root/.nix-defexpr /root/.nix-channels
-    fi
-
-    echo "📦 Installation de Nix (Multi-user)..."
+    echo "📦 Nix absent. Installation initiale..."
+    # On nettoie les backups seulement pour une NEUVE installation
+    sudo rm -f /etc/bash.bashrc.backup-before-nix /etc/zsh/zshrc.backup-before-nix
     curl -L https://nixos.org/nix/install | sh -s -- --daemon --yes --no-modify-profile
-    
-    # Chargement pour la session actuelle
-    [ -e /etc/profile.d/nix.sh ] && source /etc/profile.d/nix.sh
 else
-    echo "✅ Nix est déjà opérationnel."
+    echo "✅ Nix est déjà là, on ne réinstalle rien."
 fi
 
+# 2. Charger Nix pour la session actuelle (Indispensable pour la suite du script)
+[ -e /etc/profile.d/nix.sh ] && source /etc/profile.d/nix.sh
+
+# S'assurer que l'utilisateur peut utiliser Nix sans sudo
+if [ -e /etc/profile.d/nix.sh ]; then
+    source /etc/profile.d/nix.sh
+    # On force un redémarrage du démon pour être sûr
+    sudo systemctl restart nix-daemon.service || true
+fi
+
+# Fix des permissions si nécessaire
+sudo chown -R $(whoami) /nix/var/nix/profiles/per-user/$(whoami) 2>/dev/null || true
 
 # 2. Installer Devbox
 if ! command -v devbox &> /dev/null; then
