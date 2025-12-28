@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.16.0/.schema/devbox.schema.json",
   "packages": [
-    "zsh@latest", 
+    "zsh@latest",
     "kubectl@latest",
     "kubecolor@latest",
     "kubectx@latest",
@@ -20,7 +20,8 @@
     "tree@latest",
     "iftop@latest",
     "btop@latest",
-    "direnv@latest"
+    "direnv@latest",
+    "neofetch@latest"
   ],
   "shell": {
     "init_hook": [
@@ -30,7 +31,11 @@
       "alias mc='mcli'",
       "alias ctx='kubectx'",
       "alias ns='kubens'",
-      "alias t='task'"
-    ]
+      "alias t='task'",
+      "alias bis='cd ~/dotfiles && devbox run z'"
+    ],
+    "scripts": {
+      "z": "zsh"
+    }
   }
 }

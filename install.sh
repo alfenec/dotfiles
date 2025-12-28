@@ -7,6 +7,17 @@ DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$DOTFILES_DIR"
 
 ###############################################
+# 0. Vérifier si Zsh est installé globalement
+###############################################
+if ! command -v zsh >/dev/null 2>&1; then
+    echo "📦 Zsh non trouvé, installation via apt..."
+    sudo apt update
+    sudo apt install -y zsh
+else
+    echo "✅ Zsh déjà installé : $(zsh --version)"
+fi
+
+###############################################
 # 1. Nix — installation locale, non intrusive
 ###############################################
 if ! command -v nix >/dev/null; then
@@ -16,6 +27,7 @@ fi
 
 # Charger Nix pour la session courante
 if [ -f "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
+  # shellcheck disable=SC1090
   source "$HOME/.nix-profile/etc/profile.d/nix.sh"
 fi
 
@@ -28,7 +40,7 @@ if ! command -v devbox >/dev/null; then
 fi
 
 ###############################################
-# 3. Powerlevel10k (DANS le repo)
+# 3. powerlevel10k (DANS le repo)
 ###############################################
 if [ ! -d "$DOTFILES_DIR/powerlevel10k" ]; then
   echo "🎨 Installing powerlevel10k"
@@ -51,21 +63,33 @@ link "$DOTFILES_DIR/.zshrc"   "$HOME/.zshrc"
 link "$DOTFILES_DIR/.p10k.zsh" "$HOME/.p10k.zsh"
 
 ###############################################
-# 5. Installer zsh via Devbox et packages
+# 5. Devbox install (DANS le repo)
 ###############################################
 echo "🧰 Installing devbox packages"
-devbox add nixpkgs.zsh
 devbox install
 
-# Optionnel : afficher le chemin de zsh Devbox
-DEVBOX_ZSH="$(devbox which zsh)"
-echo "📌 Zsh est disponible via Devbox : $DEVBOX_ZSH"
-echo "Pour lancer zsh : $DEVBOX_ZSH"
+###############################################
+# 6. Configuration de l'Hôte (Idempotent)
+###############################################
+echo "🔗 Liaison du point d'entrée 'bis'..."
+
+# La commande exacte qu'on veut dans le .bashrc
+TARGET_ALIAS="alias bis='cd $DOTFILES_DIR && devbox run z'"
+
+# On vérifie si l'alias existe déjà
+if ! grep -qF "$TARGET_ALIAS" "$HOME/.bashrc"; then
+    # On nettoie les anciennes versions potentielles de 'bis' pour éviter les doublons
+    sed -i '/alias bis=/d' "$HOME/.bashrc"
+    
+    # On ajoute la version propre
+    echo "$TARGET_ALIAS" >> "$HOME/.bashrc"
+    echo "✅ Alias 'bis' configuré dans ~/.bashrc"
+fi
 
 ###############################################
-# 6. Fin
+# 7. Lancement automatique (Stateless)
 ###############################################
-echo ""
-echo "✅ Bootstrap terminé"
-echo "👉 run: $DEVBOX_ZSH"
-
+echo "🚀 Bootstrap terminé. Entrée immédiate..."
+# On ne fait pas de 'source', on 'exec' directement le bon process
+cd "$DOTFILES_DIR"
+exec devbox run z
