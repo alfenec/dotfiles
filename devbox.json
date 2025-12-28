@@ -1,0 +1,35 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.16.0/.schema/devbox.schema.json",
+  "packages": [
+    "kubectl@latest",
+    "kubecolor@latest",
+    "kubectx@latest",
+    "k9s@latest",
+    "kubernetes-helm@latest",
+    "argocd@latest",
+    "mcli@latest",
+    "skopeo@latest",
+    "sops@latest",
+    "go-task@latest",
+    "eza@latest",
+    "jq@latest",
+    "yq@latest",
+    "bat@latest",
+    "fzf@latest",
+    "tree@latest",
+    "iftop@latest",
+    "btop@latest",
+    "direnv@latest"
+  ],
+  "shell": {
+    "init_hook": [
+      "echo '🚀 Station Elfenec : Cockpit Kubernetes & Monitoring prêt.'",
+      "alias k='kubecolor'",
+      "alias kubectl='kubecolor'",
+      "alias mc='mcli'",
+      "alias ctx='kubectx'",
+      "alias ns='kubens'",
+      "alias t='task'"
+    ]
+  }
+}
