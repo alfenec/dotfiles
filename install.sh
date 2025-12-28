@@ -16,7 +16,6 @@ fi
 
 # Charger Nix pour la session courante
 if [ -f "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
-  # shellcheck disable=SC1090
   source "$HOME/.nix-profile/etc/profile.d/nix.sh"
 fi
 
@@ -29,7 +28,7 @@ if ! command -v devbox >/dev/null; then
 fi
 
 ###############################################
-# 3. powerlevel10k (DANS le repo)
+# 3. Powerlevel10k (DANS le repo)
 ###############################################
 if [ ! -d "$DOTFILES_DIR/powerlevel10k" ]; then
   echo "🎨 Installing powerlevel10k"
@@ -52,14 +51,21 @@ link "$DOTFILES_DIR/.zshrc"   "$HOME/.zshrc"
 link "$DOTFILES_DIR/.p10k.zsh" "$HOME/.p10k.zsh"
 
 ###############################################
-# 5. Devbox install (DANS le repo)
+# 5. Installer zsh via Devbox et packages
 ###############################################
 echo "🧰 Installing devbox packages"
+devbox add nixpkgs.zsh
 devbox install
+
+# Optionnel : afficher le chemin de zsh Devbox
+DEVBOX_ZSH="$(devbox which zsh)"
+echo "📌 Zsh est disponible via Devbox : $DEVBOX_ZSH"
+echo "Pour lancer zsh : $DEVBOX_ZSH"
 
 ###############################################
 # 6. Fin
 ###############################################
 echo ""
 echo "✅ Bootstrap terminé"
-echo "👉 run: zsh"
+echo "👉 run: $DEVBOX_ZSH"
+

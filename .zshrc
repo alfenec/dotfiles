@@ -75,3 +75,5 @@ alias t3='tree -L 3'
 # 6. FZF
 ###############################################
 export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border"
+
+if [ -e /home/elfenec/.nix-profile/etc/profile.d/nix.sh ]; then . /home/elfenec/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
