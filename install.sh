@@ -5,12 +5,20 @@ set -e
 
 echo "🚀 Démarrage de l'initialisation Stateless Elfenec..."
 
-# 1. Installer Nix (Multi-user)
+# 1. Installer Nix (Vérification intelligente)
 if ! command -v nix &> /dev/null; then
     echo "📦 Installation de Nix..."
-    curl -L https://nixos.org/nix/install | sh -s -- --daemon
-    # On source pour avoir accès à nix tout de suite
+    # On vérifie si les fichiers de backup bloquants existent et on les nettoie
+    [ -e /etc/bash.bashrc.backup-before-nix ] && sudo rm /etc/bash.bashrc.backup-before-nix
+    [ -e /etc/zshrc.backup-before-nix ] && sudo rm /etc/zshrc.backup-before-nix
+    
+    # Installation silencieuse
+    curl -L https://nixos.org/nix/install | sh -s -- --daemon --yes
+    
+    # Chargement immédiat
     [ -e /etc/profile.d/nix.sh ] && source /etc/profile.d/nix.sh
+else
+    echo "✅ Nix est déjà présent, on passe à la suite."
 fi
 
 # 2. Installer Devbox
