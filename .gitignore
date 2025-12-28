@@ -1,1 +1,1 @@
-echo "powerlevel10k/" >> ~/dotfiles/.gitignore
+powerlevel10k/
