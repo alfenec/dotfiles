@@ -1,0 +1,68 @@
+Markdown
+
+# 🚀 Elfenec Dotfiles : Le Cockpit DevOps Nomade
+
+Ce dépôt contient ma configuration système **Stateless** et **Agnostique**. L'objectif est de transformer n'importe quelle machine (Linux ou macOS) en une station de travail Kubernetes complète en moins de 2 minutes.
+
+## 🧠 Philosophie du Projet
+
+- **Stateless & Nomade** : Aucune dépendance locale. Mon environnement me suit partout, du Raspberry Pi à la tour Ubuntu en passant par le Mac.
+- **Immuable** : L'OS reste propre. Aucun outil n'est installé via `apt`. Tout passe par **Nix** et **Devbox**.
+- **Agnostique** : Fonctionne indépendamment de la distribution Linux ou de l'architecture (x86/ARM).
+
+---
+
+## 📦 L'Arsenal (Le contenu)
+
+| Fichier | Rôle |
+| :--- | :--- |
+| **`devbox.json`** | **L'Arsenal** : Gestionnaire de paquets (k9s, kubectl, helm, argocd, mc, sops, skopeo, kubecolor, kubectx, task, iftop, btop, tree, etc.). |
+| **`.zshrc`** | **L'Intelligence** : Mes alias (`k`, `ns`, `ctx`), la gestion des plugins et l'auto-chargement de l'environnement Devbox. |
+| **`.p10k.zsh`** | **Le Cockpit** : Design du terminal avec monitoring en temps réel du contexte Kubernetes, de la branche Git et de la charge système. |
+| **`install.sh`** | **Le Déploiement** : Script d'automatisation qui prépare Nix, installe Devbox, configure Oh My Zsh et déploie les fichiers. |
+
+---
+
+## ⚡ Installation Rapide
+
+Pour déployer cet environnement sur une nouvelle machine, exécutez simplement :
+
+```bash
+git clone [https://github.com/TON_USER/dotfiles.git](https://github.com/TON_USER/dotfiles.git) && cd dotfiles && bash install.sh
+```
+
+Une fois terminé, redémarrez votre shell :
+```bash
+zsh
+```
+
+🛠️ Utilisation au quotidien
+Mise à jour des outils : Modifiez devbox.json et lancez devbox update.
+
+Changement de contexte K8s : Utilisez l'alias ctx pour changer de cluster ou ns pour changer de namespace.
+
+Monitoring : Tapez top (btop) ou network (iftop) pour surveiller la machine.
+
+Synchronisation : git pull pour récupérer vos dernières optimisations d'alias ou d'outils.
+
+Fait avec ❤️ par Elfenec pour un monde plus Stateless.
+
+
+---
+
+### Comment l'ajouter à ton repo ?
+
+1. Crée le fichier : `nano README.md`
+2. Colle le texte ci-dessus.
+3. Sauvegarde et envoie tout sur GitHub :
+   ```bash
+   git add .
+   git commit -m "Add README and final setup"
+   git push origin main
+   ```
+Pourquoi c'est top ?
+Crédibilité : Si quelqu'un tombe sur ton repo, il comprend tout de suite que tu maîtrises les concepts modernes (Nix, Stateless).
+
+Mémoire : Tu n'auras plus jamais à chercher la commande d'installation.
+
+Évolutivité : Tu peux maintenant ajouter une section "Secrets" si tu décides un jour d'utiliser chezmoi ou un gestionnaire de mots de passe.
