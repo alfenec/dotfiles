@@ -1,51 +1,52 @@
 ###############################################
-# 0. Début : options Zsh
+# 0. Options Zsh
 ###############################################
 setopt SHARE_HISTORY
 HISTSIZE=10000
 SAVEHIST=10000
 
 ###############################################
-# 1. Activation Nix & Devbox
+# 1. Nix / Devbox / direnv
 ###############################################
-# Source Nix (si installé)
+# Nix (si présent)
 [ -e /etc/profile.d/nix.sh ] && source /etc/profile.d/nix.sh
 
-# Source Devbox pour la session courante
-if command -v devbox >/dev/null; then
-    eval "$(devbox shellenv)"
+# Devbox (si présent)
+if command -v devbox >/dev/null 2>&1; then
+  eval "$(devbox shellenv)"
 fi
 
-# Activer direnv
-if command -v direnv >/dev/null; then
-    eval "$(direnv hook zsh)"
+# direnv
+if command -v direnv >/dev/null 2>&1; then
+  eval "$(direnv hook zsh)"
 fi
 
 ###############################################
-# 2. Oh My Zsh
+# 2. Powerlevel10k (DEPUIS DOTFILES)
 ###############################################
-export ZSH="$HOME/.oh-my-zsh"
+P10K_DIR="$HOME/dotfiles/powerlevel10k"
 
-plugins=(
-    git
-    z
-    sudo
-    extract
-    zsh-autosuggestions
-    zsh-syntax-highlighting
-    you-should-use
-    kubectl
-    helm
-    argocd
-)
+if [ -f "$P10K_DIR/powerlevel10k.zsh-theme" ]; then
+  source "$P10K_DIR/powerlevel10k.zsh-theme"
+fi
 
-source $ZSH/oh-my-zsh.sh
+[[ -f "$HOME/dotfiles/.p10k.zsh" ]] && source "$HOME/dotfiles/.p10k.zsh"
 
 ###############################################
-# 3. Powerlevel10k
+# 3. Plugins Zsh (SANS Oh My Zsh)
 ###############################################
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-source ~/powerlevel10k/powerlevel10k.zsh-theme
+# z
+[ -f /usr/share/z/z.sh ] && source /usr/share/z/z.sh
+
+# autosuggestions
+if [ -f "$HOME/.nix-profile/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
+  source "$HOME/.nix-profile/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+fi
+
+# syntax highlighting (DOIT ÊTRE EN DERNIER)
+if [ -f "$HOME/.nix-profile/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
+  source "$HOME/.nix-profile/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+fi
 
 ###############################################
 # 4. Alias confort
@@ -67,7 +68,6 @@ alias ns='kubens'
 alias mc='mcli'
 alias t='task'
 
-# Tree rapide
 alias t2='tree -L 2'
 alias t3='tree -L 3'
 
