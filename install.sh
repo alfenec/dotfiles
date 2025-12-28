@@ -3,6 +3,16 @@ set -euo pipefail
 
 echo "🚀 Bootstrap stateless dotfiles"
 
+###############################################
+# 0. Git Identity (Stateless Setup)
+###############################################
+echo "👤 Configuring Git identity"
+git config --global credential.helper store
+git config --global user.email "elfenec75@gmail.com"
+git config --global user.name "alfenec"
+# Pour éviter les messages d'avertissement sur le mode de fusion
+git config --global pull.rebase false
+
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$DOTFILES_DIR"
 

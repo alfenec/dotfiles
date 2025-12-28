@@ -25,7 +25,9 @@
   ],
   "shell": {
     "init_hook": [
-      "echo '🚀 Station Elfenec : Cockpit Kubernetes & Monitoring prêt.'",
+      "neofetch",
+      "export KUBECONFIG=$HOME/.kube/config:/etc/rancher/k3s/k3s.yaml",
+      "echo '🚀 Roof Kubernetes prêt !'",
       "alias k='kubecolor'",
       "alias kubectl='kubecolor'",
       "alias mc='mcli'",
