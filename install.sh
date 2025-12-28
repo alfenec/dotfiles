@@ -79,7 +79,7 @@ cp -f devbox.json ~/devbox.json
 echo "🛠️ Installation des outils via Devbox (k9s, helm, btop, etc.)..."
 # On s'assure d'être dans le bon dossier pour le devbox install
 cd $HOME
-sudo devbox install --allow-root
+sudo devbox install
 
 echo ""
 echo "✅ Setup terminé avec succès !"
