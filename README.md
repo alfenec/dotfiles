@@ -6,8 +6,6 @@ Ce dépôt contient ma configuration système **Stateless** et **Agnostique**. L
 
 ## 🧠 Philosophie du Projet
 
-## 🧠 Philosophie du Projet
-
 - **Stateless & Nomade** : Aucune dépendance locale. Mon environnement me suit partout.
 - **Idempotent** : Le script `install.sh` peut être exécuté plusieurs fois sans risque. Il vérifie l'existence des composants (Nix, Devbox, Oh My Zsh) avant d'agir et répare les conflits de configuration.
 - **Immuable** : L'OS reste propre. Aucun outil n'est installé via `apt`. Tout passe par **Nix** et **Devbox**.
