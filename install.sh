@@ -9,17 +9,18 @@ echo "🚀 Démarrage de l'initialisation Stateless Elfenec..."
 if ! command -v nix &> /dev/null; then
     echo "📦 Installation de Nix..."
     
-    # Nettoyage agressif des résidus qui font planter l'installeur
+    # On nettoie TOUS les backups possibles qui font échouer l'installeur
+    # On ajoute /etc/zsh/zshrc qui est le coupable actuel
     sudo rm -f /etc/bash.bashrc.backup-before-nix
+    sudo rm -f /etc/zsh/zshrc.backup-before-nix
     sudo rm -f /etc/zshrc.backup-before-nix
     sudo rm -f /etc/bashrc.backup-before-nix
     sudo rm -f /etc/profile.backup-before-nix
 
-    # Installation avec flags de forçage
-    # --no-modify-profile évite que Nix essaie d'écrire dans /etc/
+    # L'option --no-modify-profile est vitale ici pour qu'il ne tente plus de créer ces fichiers
     curl -L https://nixos.org/nix/install | sh -s -- --daemon --yes --no-modify-profile
     
-    # On source manuellement pour la session actuelle
+    # On source pour la session actuelle
     [ -e /etc/profile.d/nix.sh ] && source /etc/profile.d/nix.sh
 else
     echo "✅ Nix est déjà présent."
