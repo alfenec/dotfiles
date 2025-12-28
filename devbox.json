@@ -7,7 +7,7 @@
     "k9s@latest",
     "kubernetes-helm@latest",
     "argocd@latest",
-    "mcli@latest",
+    "minio-client@latest",
     "skopeo@latest",
     "sops@latest",
     "go-task@latest",
