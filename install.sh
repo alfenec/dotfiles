@@ -73,7 +73,7 @@ fi
 ###############################################
 if ! command -v direnv >/dev/null; then
     echo "📦 Installation de direnv via Nix..."
-    nix profile install nixpkgs#direnv
+    nix --extra-experimental-features 'nix-command flakes ca-derivations fetch-closure' profile install nixpkgs#direnv
 fi
 
 ###############################################
@@ -120,6 +120,8 @@ fi
 ###############################################
 # 8. Installation des packages Devbox
 ###############################################
+export NIX_EXTRA_EXPERIMENTAL_FEATURES="nix-command flakes ca-derivations fetch-closure"
+
 cd "$HOME/dotfiles"
 devbox install
 
