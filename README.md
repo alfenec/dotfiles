@@ -39,6 +39,8 @@ Une fois terminé, redémarrez votre shell :
 zsh
 ```
 
+(si modif. faite un git pull puis un bash install.sh ou ./installsh directement)
+
 🛠️ Utilisation au quotidien
 Mise à jour des outils : Modifiez devbox.json et lancez devbox update.
 
