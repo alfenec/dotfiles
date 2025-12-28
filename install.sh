@@ -29,15 +29,7 @@ if ! command -v devbox >/dev/null; then
 fi
 
 ###############################################
-# 3. direnv (via Nix profile USER)
-###############################################
-if ! command -v direnv >/dev/null; then
-  echo "📦 Installing direnv (Nix profile)"
-  nix profile install nixpkgs#direnv
-fi
-
-###############################################
-# 4. powerlevel10k (DANS le repo)
+# 3. powerlevel10k (DANS le repo)
 ###############################################
 if [ ! -d "$DOTFILES_DIR/powerlevel10k" ]; then
   echo "🎨 Installing powerlevel10k"
@@ -46,7 +38,7 @@ if [ ! -d "$DOTFILES_DIR/powerlevel10k" ]; then
 fi
 
 ###############################################
-# 5. Zsh config (symlinks UNIQUEMENT)
+# 4. Zsh config (symlinks UNIQUEMENT)
 ###############################################
 link() {
   local src="$1"
@@ -60,15 +52,14 @@ link "$DOTFILES_DIR/.zshrc"   "$HOME/.zshrc"
 link "$DOTFILES_DIR/.p10k.zsh" "$HOME/.p10k.zsh"
 
 ###############################################
-# 6. Devbox install (DANS le repo)
+# 5. Devbox install (DANS le repo)
 ###############################################
 echo "🧰 Installing devbox packages"
 devbox install
 
 ###############################################
-# 7. Fin
+# 6. Fin
 ###############################################
 echo ""
 echo "✅ Bootstrap terminé"
-echo "👉 run once: direnv allow"
-echo "👉 then: zsh"
+echo "👉 run: zsh"
