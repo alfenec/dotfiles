@@ -3,83 +3,60 @@ set -euo pipefail
 
 echo "🚀 Démarrage de l'initialisation Stateless Elfenec..."
 
+DOTFILES_DIR="$(pwd)"
 USER_NAME="$(whoami)"
-DOTFILES_DIR="$HOME/dotfiles"
-NIX_DIR="$DOTFILES_DIR/.nix"
+
+# Chemins locaux pour Nix et Devbox
+LOCAL_NIX="$DOTFILES_DIR/.nix"
+LOCAL_DEVBOX="$DOTFILES_DIR/.devbox"
 
 ###############################################
 # 1. Installation de Nix local si absent
 ###############################################
-if [ ! -d "$NIX_DIR" ]; then
-    echo "📦 Nix absent. Installation locale dans $NIX_DIR..."
-    mkdir -p "$NIX_DIR"
-    curl -L https://releases.nixos.org/nix/latest/nix-2.33.0-x86_64-linux.tar.xz \
-        -o "$DOTFILES_DIR/nix.tar.xz"
-    tar -xf "$DOTFILES_DIR/nix.tar.xz" -C "$NIX_DIR" --strip-components=1
-    rm "$DOTFILES_DIR/nix.tar.xz"
+if [ ! -d "$LOCAL_NIX" ]; then
+    echo "📦 Nix absent. Installation locale dans $LOCAL_NIX..."
+
+    mkdir -p "$LOCAL_NIX"
+
+    # Télécharger et installer Nix local
+    curl -L https://nixos.org/nix/install | sh -s -- --no-daemon --no-modify-profile --prefix "$LOCAL_NIX"
 fi
 
-# Ajouter Nix local au PATH
-export PATH="$NIX_DIR/bin:$PATH"
-[ -f "$NIX_DIR/etc/profile.d/nix.sh" ] && source "$NIX_DIR/etc/profile.d/nix.sh"
+# Configurer les variables d'environnement pour la session
+export NIX_USER_PROFILE_DIR="$LOCAL_NIX/profile"
+export NIX_PATH="$LOCAL_NIX"
+export PATH="$LOCAL_NIX/bin:$PATH"
+export NIX_EXTRA_EXPERIMENTAL_FEATURES="nix-command flakes ca-derivations fetch-closure"
 
-###############################################
-# 2. Installation de Devbox local si absent
-###############################################
-DEVBOX_DIR="$DOTFILES_DIR/.devbox"
-if [ ! -d "$DEVBOX_DIR" ]; then
-    echo "📦 Installation de Devbox locale dans $DEVBOX_DIR..."
-    mkdir -p "$DEVBOX_DIR"
-    curl -fsSL https://get.jetpack.io/devbox | bash -s -- --path "$DEVBOX_DIR"
-fi
-
-# Source Devbox pour la session courante
-export PATH="$DEVBOX_DIR/bin:$PATH"
-[ -f "$DEVBOX_DIR/shellenv" ] && eval "$("$DEVBOX_DIR/bin/devbox" shellenv)"
-
-###############################################
-# 3. Installation de direnv via Nix
-###############################################
-if ! command -v direnv >/dev/null; then
-    echo "📦 Installation de direnv via Nix..."
-    nix --extra-experimental-features 'nix-command flakes ca-derivations fetch-closure' profile install nixpkgs#direnv
+# Vérifier Nix
+if ! command -v nix >/dev/null; then
+    echo "❌ Nix non trouvé après installation."
+    exit 1
 fi
 
 ###############################################
-# 4. Oh My Zsh, P10k & plugins
+# 2. Installation de Devbox locale si absent
 ###############################################
-if [ ! -d "$HOME/.oh-my-zsh" ]; then
-    echo "🐚 Installation de Oh My Zsh..."
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+if [ ! -d "$LOCAL_DEVBOX" ]; then
+    echo "📦 Installation de Devbox locale dans $LOCAL_DEVBOX..."
+    curl -fsSL https://get.jetpack.io/devbox | bash -s -- --path "$LOCAL_DEVBOX"
 fi
 
-ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
-mkdir -p "${ZSH_CUSTOM}/plugins"
+# Configurer Devbox pour la session
+export DEVBOX_HOME="$LOCAL_DEVBOX"
+export PATH="$LOCAL_DEVBOX/bin:$PATH"
 
-echo "🔌 Installation des plugins ZSH..."
-[ ! -d "${ZSH_CUSTOM}/plugins/zsh-autosuggestions" ] && \
-    git clone https://github.com/zsh-users/zsh-autosuggestions "${ZSH_CUSTOM}/plugins/zsh-autosuggestions"
-[ ! -d "${ZSH_CUSTOM}/plugins/zsh-syntax-highlighting" ] && \
-    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "${ZSH_CUSTOM}/plugins/zsh-syntax-highlighting"
-[ ! -d "${ZSH_CUSTOM}/plugins/you-should-use" ] && \
-    git clone https://github.com/MichaelAquilina/zsh-you-should-use.git "${ZSH_CUSTOM}/plugins/you-should-use"
-[ ! -d "$HOME/powerlevel10k" ] && \
-    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$HOME/powerlevel10k"
+if ! command -v devbox >/dev/null; then
+    echo "❌ Devbox non trouvé après installation."
+    exit 1
+fi
 
 ###############################################
-# 5. Déploiement des dotfiles
+# 3. Créer et activer .envrc pour direnv
 ###############################################
-echo "📝 Déploiement des dotfiles..."
-cp -f .zshrc "$HOME/.zshrc"
-cp -f .p10k.zsh "$HOME/.p10k.zsh"
-cp -f devbox.json "$HOME/devbox.json"
-
-###############################################
-# 6. Création et activation de .envrc pour direnv
-###############################################
-ENVRC_FILE="$DOTFILES_DIR/.envrc"
-if [ ! -f "$ENVRC_FILE" ]; then
-    echo "use devbox" > "$ENVRC_FILE"
+ENVRC="$DOTFILES_DIR/.envrc"
+if [ ! -f "$ENVRC" ]; then
+    echo "use devbox" > "$ENVRC"
 fi
 
 if command -v direnv >/dev/null; then
@@ -87,10 +64,30 @@ if command -v direnv >/dev/null; then
 fi
 
 ###############################################
+# 4. Installation de direnv via Nix local
+###############################################
+if ! command -v direnv >/dev/null; then
+    echo "📦 Installation de direnv via Nix local..."
+    nix profile install nixpkgs#direnv
+fi
+
+###############################################
+# 5. Oh My Zsh, P10k & plugins (optionnel)
+###############################################
+ZSH_CUSTOM="${ZSH_CUSTOM:-$DOTFILES_DIR/powerlevel10k}"
+if [ ! -d "$ZSH_CUSTOM" ]; then
+    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$ZSH_CUSTOM"
+fi
+
+###############################################
+# 6. Déploiement des dotfiles
+###############################################
+cp -f "$DOTFILES_DIR/.zshrc" "$DOTFILES_DIR/.p10k.zsh" "$DOTFILES_DIR/devbox.json" "$DOTFILES_DIR/"
+
+###############################################
 # 7. Installation des packages Devbox
 ###############################################
 cd "$DOTFILES_DIR"
-export NIX_EXTRA_EXPERIMENTAL_FEATURES="nix-command flakes ca-derivations fetch-closure"
 devbox install
 
 ###############################################
@@ -98,4 +95,5 @@ devbox install
 ###############################################
 echo ""
 echo "✅ Setup terminé avec succès !"
-echo "🚀 Tape : zsh pour démarrer ta session Zsh avec Devbox et dotfiles prêts."
+echo "🚀 Tout est local dans $DOTFILES_DIR, aucun fichier créé en dehors."
+echo "👉 Lance : zsh"
