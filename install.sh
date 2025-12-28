@@ -5,20 +5,24 @@ set -e
 
 echo "🚀 Démarrage de l'initialisation Stateless Elfenec..."
 
-# 1. Installer Nix (Vérification intelligente)
+# 1. Installer Nix
 if ! command -v nix &> /dev/null; then
     echo "📦 Installation de Nix..."
-    # On vérifie si les fichiers de backup bloquants existent et on les nettoie
-    [ -e /etc/bash.bashrc.backup-before-nix ] && sudo rm /etc/bash.bashrc.backup-before-nix
-    [ -e /etc/zshrc.backup-before-nix ] && sudo rm /etc/zshrc.backup-before-nix
     
-    # Installation silencieuse
-    curl -L https://nixos.org/nix/install | sh -s -- --daemon --yes
+    # Nettoyage agressif des résidus qui font planter l'installeur
+    sudo rm -f /etc/bash.bashrc.backup-before-nix
+    sudo rm -f /etc/zshrc.backup-before-nix
+    sudo rm -f /etc/bashrc.backup-before-nix
+    sudo rm -f /etc/profile.backup-before-nix
+
+    # Installation avec flags de forçage
+    # --no-modify-profile évite que Nix essaie d'écrire dans /etc/
+    curl -L https://nixos.org/nix/install | sh -s -- --daemon --yes --no-modify-profile
     
-    # Chargement immédiat
+    # On source manuellement pour la session actuelle
     [ -e /etc/profile.d/nix.sh ] && source /etc/profile.d/nix.sh
 else
-    echo "✅ Nix est déjà présent, on passe à la suite."
+    echo "✅ Nix est déjà présent."
 fi
 
 # 2. Installer Devbox
