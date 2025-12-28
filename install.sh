@@ -6,57 +6,29 @@ echo "🚀 Démarrage de l'initialisation Stateless Elfenec..."
 USER_NAME="$(whoami)"
 
 ###############################################
-# 1. Installation de Nix multi-user si absent
+# 1. Installation de Nix single-user si absent
 ###############################################
-if [ ! -d "/nix" ]; then
-    echo "📦 Nix absent. Installation initiale..."
-    
-    # Nettoyage préventif de backups
-    sudo rm -f \
-        /etc/bash.bashrc.backup-before-nix \
-        /etc/zsh/zshrc.backup-before-nix \
-        /etc/bashrc.backup-before-nix \
-        /etc/zshrc.backup-before-nix \
-        /etc/profile.backup-before-nix
+if [ ! -d "$HOME/.nix-profile" ]; then
+    echo "📦 Nix absent. Installation initiale (single-user)..."
 
-    curl -L https://nixos.org/nix/install | sh -s -- --daemon --yes --no-modify-profile
+    # Nettoyage préventif de backups
+    rm -f \
+        "$HOME/.bashrc.backup-before-nix" \
+        "$HOME/.zshrc.backup-before-nix" \
+        "$HOME/.profile.backup-before-nix"
+
+    curl -L https://nixos.org/nix/install | sh -s -- --no-daemon
 else
     echo "✅ Nix déjà présent."
 fi
 
 # Source Nix pour la session courante
-[ -e /etc/profile.d/nix.sh ] && source /etc/profile.d/nix.sh
+if [ -e "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
+    source "$HOME/.nix-profile/etc/profile.d/nix.sh"
+fi
 
 ###############################################
-# 2. Configuration Nix multi-user + trusted user
-###############################################
-sudo mkdir -p /etc/nix/nix.conf.d
-sudo tee /etc/nix/nix.conf.d/00-multi-user.conf >/dev/null <<EOF
-allowed-users = *
-trusted-users = root ${USER_NAME}
-build-users-group = nixbld
-sandbox = true
-experimental-features = nix-command flakes ca-derivations fetch-closure
-EOF
-
-# Permissions correctes
-sudo chown -R root:nixbld /nix/var/nix
-sudo chmod 1775 /nix/var/nix
-sudo chmod 1775 /nix/var/nix/db
-sudo chmod 1775 /nix/var/nix/temproots
-
-# Nettoyage locks temporaires
-sudo rm -f /nix/var/nix/db/big-lock
-sudo rm -rf /nix/var/nix/temproots/*
-
-# Ajout de l'utilisateur au groupe nixbld
-sudo usermod -aG nixbld "${USER_NAME}" || true
-
-# Redémarrage du démon
-sudo systemctl restart nix-daemon || true
-
-###############################################
-# 3. Installation de Devbox si absent
+# 2. Installation de Devbox si absent
 ###############################################
 if ! command -v devbox >/dev/null; then
     echo "📦 Installation de Devbox..."
@@ -69,15 +41,16 @@ if command -v devbox >/dev/null; then
 fi
 
 ###############################################
-# 4. Installation de direnv via Devbox/Nix
+# 3. Installation de direnv via Nix
 ###############################################
 if ! command -v direnv >/dev/null; then
     echo "📦 Installation de direnv via Nix..."
-    nix --extra-experimental-features 'nix-command flakes ca-derivations fetch-closure' profile install nixpkgs#direnv
+    nix profile install nixpkgs#direnv \
+        --extra-experimental-features 'nix-command flakes ca-derivations fetch-closure'
 fi
 
 ###############################################
-# 5. Oh My Zsh, P10k & plugins
+# 4. Oh My Zsh, P10k & plugins
 ###############################################
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
     echo "🐚 Installation de Oh My Zsh..."
@@ -98,7 +71,7 @@ echo "🔌 Installation des plugins ZSH..."
     git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$HOME/powerlevel10k"
 
 ###############################################
-# 6. Déploiement des dotfiles
+# 5. Déploiement des dotfiles
 ###############################################
 echo "📝 Déploiement des dotfiles..."
 cp -f .zshrc "$HOME/.zshrc"
@@ -106,7 +79,7 @@ cp -f .p10k.zsh "$HOME/.p10k.zsh"
 cp -f devbox.json "$HOME/devbox.json"
 
 ###############################################
-# 7. Création et activation de .envrc
+# 6. Création et activation de .envrc
 ###############################################
 if [ ! -f "$HOME/dotfiles/.envrc" ]; then
     echo "use devbox" > "$HOME/dotfiles/.envrc"
@@ -118,7 +91,7 @@ if command -v direnv >/dev/null; then
 fi
 
 ###############################################
-# 8. Installation des packages Devbox
+# 7. Installation des packages Devbox
 ###############################################
 export NIX_EXTRA_EXPERIMENTAL_FEATURES="nix-command flakes ca-derivations fetch-closure"
 
@@ -126,7 +99,7 @@ cd "$HOME/dotfiles"
 devbox install
 
 ###############################################
-# 9. Finalisation
+# 8. Finalisation
 ###############################################
 echo ""
 echo "✅ Setup terminé avec succès !"
