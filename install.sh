@@ -5,14 +5,25 @@ set -e
 
 echo "🚀 Démarrage de l'initialisation Stateless Elfenec..."
 
-# 1. Installer Nix UNIQUEMENT s'il est absent
-if ! command -v nix &> /dev/null; then
-    echo "📦 Nix absent. Installation initiale..."
-    # On nettoie les backups seulement pour une NEUVE installation
-    sudo rm -f /etc/bash.bashrc.backup-before-nix /etc/zsh/zshrc.backup-before-nix
+# 1. Installer Nix UNIQUEMENT s'il n'est pas sur le disque
+if [ ! -d "/nix" ]; then
+    echo "📦 Nix absent physiquement. Installation initiale..."
+    
+    # Nettoyage préventif complet (on vide TOUT ce qui peut bloquer)
+    sudo rm -f /etc/bash.bashrc.backup-before-nix \
+               /etc/zsh/zshrc.backup-before-nix \
+               /etc/bashrc.backup-before-nix \
+               /etc/zshrc.backup-before-nix \
+               /etc/profile.backup-before-nix
+
     curl -L https://nixos.org/nix/install | sh -s -- --daemon --yes --no-modify-profile
 else
-    echo "✅ Nix est déjà là, on ne réinstalle rien."
+    echo "✅ Le dossier /nix existe déjà, on saute l'installation."
+fi
+
+# 2. Charger Nix de force pour la suite du script (MÊME si déjà installé)
+if [ -e /etc/profile.d/nix.sh ]; then
+    source /etc/profile.d/nix.sh
 fi
 
 # 2. Charger Nix pour la session actuelle (Indispensable pour la suite du script)
