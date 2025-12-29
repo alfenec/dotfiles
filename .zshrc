@@ -15,13 +15,16 @@ SAVEHIST=10000
 ###############################################
 # 1. Nix / Devbox / direnv
 ###############################################
+if command -v devbox >/dev/null 2>&1 && [[ -f ~/dotfiles/devbox.json ]]; then
+  pushd ~/dotfiles >/dev/null
+  eval "$(devbox shellenv)"
+  popd >/dev/null
+fi
+
+cd ~/gitops
+
 # Nix (si présent)
 [ -e /etc/profile.d/nix.sh ] && source /etc/profile.d/nix.sh
-
-# Devbox (si présent)
-if command -v devbox >/dev/null 2>&1; then
-  eval "$(devbox shellenv)"
-fi
 
 # direnv
 if command -v direnv >/dev/null 2>&1; then
@@ -61,22 +64,37 @@ fi
 alias ls='eza --icons --group-directories-first'
 alias ll='eza -lh --icons --group-directories-first'
 alias la='eza -a --icons --group-directories-first'
-alias cat='bat'
-alias top='btop'
 
 ###############################################
 # 5. Alias Kubernetes & Ops
 ###############################################
-alias k='kubecolor'
-alias kubectl='kubecolor'
-alias kn='k9s'
-alias ctx='kubectx'
-alias ns='kubens'
-alias mc='mcli'
-alias t='task'
+# Ne lancer que dans un shell interactif
+if [[ -o interactive ]]; then
 
-alias t2='tree -L 2'
-alias t3='tree -L 3'
+  # Affichage système
+  command -v neofetch >/dev/null 2>&1 && neofetch
+
+  # Kubernetes
+  export KUBECONFIG="$HOME/.kube/config:/etc/rancher/k3s/k3s.yaml"
+
+  # Message de bienvenue
+  echo "🚀 Roof Kubernetes prêt !"
+
+  #############################################
+  # Alias Dev / Ops
+  #############################################
+  alias k='kubecolor'
+  alias kubectl='kubecolor'
+  alias mc='mcli'
+  alias kn='k9s'
+  alias ctx='kubectx'
+  alias ns='kubens'
+  alias t='task'
+  alias t2='tree -L 2'
+  alias t3='tree -L 3'
+  alias bis='neofetch'
+
+fi
 
 ###############################################
 # 6. FZF
@@ -87,3 +105,4 @@ if [ -e /home/elfenec/.nix-profile/etc/profile.d/nix.sh ]; then . /home/elfenec/
 
 # To customize prompt, run `p10k configure` or edit ~/dotfiles/.p10k.zsh.
 [[ ! -f ~/dotfiles/.p10k.zsh ]] || source ~/dotfiles/.p10k.zsh
+
