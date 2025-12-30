@@ -34,8 +34,10 @@ P10K_DIR="$HOME/dotfiles/powerlevel10k"
 # =========================================
 # 4. Plugins Zsh (sans Oh My Zsh)
 # =========================================
-# z
-[ -f /usr/share/z/z.sh ] && source /usr/share/z/z.sh
+# Suppression de l'ancien 'z' et remplacement par zoxide
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init zsh)"
+fi
 
 # autosuggestions
 [ -f "$HOME/.nix-profile/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ] && \
@@ -64,7 +66,10 @@ alias ns='kubens'
 alias t='task'
 alias t2='tree -L 2'
 alias t3='tree -L 3'
-alias bis='neofetch'
+alias ff='fastfetch'
+alias y='yazi'       # Ton nouveau navigateur
+alias lg='lazygit'   # Ton interface Git
+alias v='nvim'       # Plus rapide à taper
 
 # =========================================
 # 7. Devbox + Neofetch + message 🚀 (une seule fois)

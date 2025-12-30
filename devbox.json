@@ -21,7 +21,16 @@
     "iftop@latest",
     "btop@latest",
     "direnv@latest",
-    "neofetch@latest"
+    "neofetch@latest",
+    "glow@latest",
+    "zellij@latest",
+    "neovim@latest",
+    "fastfetch@latest",
+    "zoxide@latest",
+    "fd@latest",
+    "yazi@latest",
+    "ripgrep@latest",
+    "lazygit@latest"
   ],
   "shell": {
     "init_hook": [
