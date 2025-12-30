@@ -30,26 +30,8 @@
     "fd@latest",
     "yazi@latest",
     "ripgrep@latest",
-    "lazygit@latest"
-  ],
-  "shell": {
-    "init_hook": [
-      "neofetch",
-      "export KUBECONFIG=$HOME/.kube/config:/etc/rancher/k3s/k3s.yaml",
-      "echo '🚀 Roof Kubernetes prêt !'",
-      "alias k='kubecolor'",
-      "alias kubectl='kubecolor'",
-      "alias mc='mcli'",
-      "alias kn='k9s'",
-      "alias ctx='kubectx'",
-      "alias ns='kubens'",
-      "alias t='task'",
-      "alias t2='tree -L 2'",
-      "alias t3='tree -L 3'",
-      "alias bis='cd ~/dotfiles && devbox run z'"
-    ],
-    "scripts": {
-      "z": "zsh"
-    }
-  }
+    "lazygit@latest",
+    "gum@latest",
+    "ncurses@latest"
+  ]
 }
