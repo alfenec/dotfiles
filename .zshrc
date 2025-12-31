@@ -24,7 +24,11 @@ fi
 # =========================================
 # 2. Options Zsh & Plugins
 # =========================================
-setopt SHARE_HISTORY
+export HISTFILE="$HOME/.zsh_history"
+setopt append_history     # Ajoute au fichier plutôt que de l'écraser
+setopt hist_ignore_space   # Astuce : ne pas enregistrer les commandes commençant par un espace
+setopt hist_reduce_blanks  # Supprime les espaces superflus dans l'historique
+setopt hist_ignore_dups   # Ne pas enregistrer la même commande deux fois de suite
 HISTSIZE=10000
 SAVEHIST=10000
 
@@ -39,6 +43,9 @@ if command -v direnv >/dev/null 2>&1; then
   eval "$(direnv hook zsh)"
 fi
 
+# Yazi + neovim
+export EDITOR="nvim"
+export VISUAL="nvim"
 # =========================================
 # 3. Thème & Plugins visuels
 # =========================================
@@ -71,6 +78,8 @@ alias t='task'
 alias ns='kubens'
 alias ctx='kubectx'
 alias mc='mcli'
+alias za='zellij attach'
+alias cc='clear'
 
 # =========================================
 # 5. Startup Interactive (Clear & Welcome)
@@ -80,7 +89,12 @@ if [[ -o interactive ]] && [[ -z "$STARTUP_DONE" ]]; then
   export KUBECONFIG="$HOME/.kube/config:/etc/rancher/k3s/k3s.yaml"
   
   clear
-  command -v neofetch >/dev/null 2>&1 && neofetch || neofetch
+# On vérifie si neofetch est là avant de hurler une erreur
+  if command -v neofetch >/dev/null 2>&1; then
+    neofetch
+  else
+    echo "❌ neofetch n'est pas installé dans devbox.json"
+  fi
   echo "🚀 Roof Kubernetes prêt !"
 fi
 
