@@ -1,105 +1,108 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "🚀 Bootstrap stateless dotfiles"
+echo "🚀 Bootstrap stateless dotfiles (Unified Mac/Linux)"
 
-###############################################
-# 0. Git Identity (Stateless Setup)
-###############################################
-echo "👤 Configuring Git identity"
-git config --global credential.helper store
-git config --global user.email "elfenec75@gmail.com"
-git config --global user.name "alfenec"
-# Pour éviter les messages d'avertissement sur le mode de fusion
-git config --global pull.rebase false
-
+# Détection de l'OS
+OS_TYPE=$(uname)
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$DOTFILES_DIR"
 
 ###############################################
-# 0. Vérifier si Zsh est installé globalement
+# 0. Git Identity (Stateless Setup)
+###############################################
+#echo "👤 Configuring Git identity"
+git config --global user.email "elfenec75@gmail.com"
+git config --global user.name "alfenec"
+git config --global pull.rebase false
+
+###############################################
+# 1. Installation de Zsh (si manquant)
 ###############################################
 if ! command -v zsh >/dev/null 2>&1; then
-    echo "📦 Zsh non trouvé, installation via apt..."
-    sudo apt update
-    sudo apt install -y zsh
+    if [ "$OS_TYPE" == "Linux" ]; then
+        echo "📦 Zsh non trouvé, installation via apt..."
+        sudo apt update && sudo apt install -y zsh
+    else
+        echo "❌ Zsh devrait être natif sur Mac. Vérifiez votre installation."
+    fi
 else
     echo "✅ Zsh déjà installé : $(zsh --version)"
 fi
 
 ###############################################
-# 1. Nix — installation locale, non intrusive
+# 2. Nix — Installation robuste
 ###############################################
+echo "🔍 Vérification de Nix..."
 if ! command -v nix >/dev/null; then
-  echo "📦 Installing Nix (single-user, non-intrusive)"
-  curl -L https://nixos.org/nix/install | sh -s -- --no-daemon
-fi
+    echo "📦 Installation de Nix via Determinate Systems (recommandé)..."
+    curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm
 
-# Charger Nix pour la session courante
-if [ -f "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
-  # shellcheck disable=SC1090
-  source "$HOME/.nix-profile/etc/profile.d/nix.sh"
+    # Source immédiate pour la suite du script
+    if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
+        . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
+    fi
+else
+    echo "✅ Nix est déjà présent."
 fi
 
 ###############################################
-# 2. Devbox (user-space, via script officiel)
+# 3. Devbox (User-space)
 ###############################################
 if ! command -v devbox >/dev/null; then
-  echo "📦 Installing Devbox"
-  curl -fsSL https://get.jetpack.io/devbox | bash
+    echo "📦 Installing Devbox"
+    curl -fsSL https://get.jetpack.io/devbox | bash
 fi
 
 ###############################################
-# 3. powerlevel10k (DANS le repo)
+# 4. Powerlevel10k (Installation sans Git si possible)
 ###############################################
 if [ ! -d "$DOTFILES_DIR/powerlevel10k" ]; then
-  echo "🎨 Installing powerlevel10k"
-  git clone --depth=1 https://github.com/romkatv/powerlevel10k.git \
-    "$DOTFILES_DIR/powerlevel10k"
+    echo "🎨 Installing powerlevel10k..."
+    # On utilise curl pour rester "stateless" et léger
+    mkdir -p "$DOTFILES_DIR/powerlevel10k"
+    curl -L https://github.com/romkatv/powerlevel10k/archive/refs/heads/master.tar.gz | \
+    tar -xz -C "$DOTFILES_DIR/powerlevel10k" --strip-components=1
 fi
 
 ###############################################
-# 4. Zsh config (symlinks UNIQUEMENT)
+# 5. Zsh config (Symlinks Idempotents)
 ###############################################
-link() {
-  local src="$1"
-  local dst="$2"
-  if [ ! -e "$dst" ]; then
+link_file() {
+    local src="$1"
+    local dst="$2"
+    if [ -L "$dst" ]; then
+        rm "$dst" # On recrée le lien pour être sûr qu'il est à jour
+    elif [ -f "$dst" ]; then
+        mv "$dst" "${dst}.bak" # Backup si un vrai fichier existe
+    fi
     ln -s "$src" "$dst"
-  fi
+    echo "🔗 Link créé : $dst"
 }
 
-link "$DOTFILES_DIR/.zshrc"   "$HOME/.zshrc"
-link "$DOTFILES_DIR/.p10k.zsh" "$HOME/.p10k.zsh"
+link_file "$DOTFILES_DIR/.zshrc"   "$HOME/.zshrc"
+link_file "$DOTFILES_DIR/.p10k.zsh" "$HOME/.p10k.zsh"
 
 ###############################################
-# 5. Devbox install (DANS le repo)
+# 6. Devbox Install (Sync des packages)
 ###############################################
-echo "🧰 Installing devbox packages"
+echo "🧰 Synchronisation des packages Devbox..."
 devbox install
 
 ###############################################
-# 6. Configuration de l'Hôte (Idempotent)
+# 7. Finalisation
 ###############################################
-echo "🔗 Liaison du point d'entrée 'bis'..."
+echo "🚀 Setup terminé !"
 
-# La commande exacte qu'on veut dans le .bashrc
-TARGET_ALIAS="alias bis='cd $DOTFILES_DIR && devbox run z'"
-
-# On vérifie si l'alias existe déjà
-if ! grep -qF "$TARGET_ALIAS" "$HOME/.bashrc"; then
-    # On nettoie les anciennes versions potentielles de 'bis' pour éviter les doublons
-    sed -i '/alias bis=/d' "$HOME/.bashrc"
-    
-    # On ajoute la version propre
-    echo "$TARGET_ALIAS" >> "$HOME/.bashrc"
-    echo "✅ Alias 'bis' configuré dans ~/.bashrc"
+if [ -d "$DOTFILES_DIR" ]; then
+    pushd "$DOTFILES_DIR" > /dev/null
+    eval "$(devbox shellenv)"
+    popd > /dev/null
 fi
 
-###############################################
-# 7. Lancement automatique (Stateless)
-###############################################
-echo "🚀 Bootstrap terminé. Entrée immédiate..."
-# On ne fait pas de 'source', on 'exec' directement le bon process
-cd "$DOTFILES_DIR"
-exec devbox run z
+if command -v fastfetch >/dev/null 2>&1; then
+    fastfetch
+fi
+
+# On remplace le shell actuel par Zsh
+exec zsh

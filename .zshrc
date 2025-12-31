@@ -80,7 +80,7 @@ if [[ -o interactive ]] && [[ -z "$STARTUP_DONE" ]]; then
   export KUBECONFIG="$HOME/.kube/config:/etc/rancher/k3s/k3s.yaml"
   
   clear
-  command -v fastfetch >/dev/null 2>&1 && fastfetch || neofetch
+  command -v neofetch >/dev/null 2>&1 && neofetch || neofetch
   echo "🚀 Roof Kubernetes prêt !"
 fi
 
