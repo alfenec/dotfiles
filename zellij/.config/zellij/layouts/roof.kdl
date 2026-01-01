@@ -13,26 +13,30 @@ layout {
 
     tab name="Control-Plane" focus=true {
         pane split_direction="vertical" {
-            pane name="Tools" stacked=true {
-                pane name="k3s" cwd="~/gitops"
-                pane name="k9s" command="k9s" cwd="~/gitops"
+            pane name="Explorer" stacked=true {
+                pane name="k3s" cwd="/home/elfenec/gitops"
+                pane name="k9s" command="k9s" cwd="/home/elfenec/gitops"
             }
-            pane name="GuideLine" command="nvim" cwd="~/gitops" {
-                args "README.md"
+            pane name="Editor" stacked=true {
+                pane name="glow" command="glow" cwd="/home/elfenec/gitops" {
+                    args "README.md"
+                }
+                pane name="git" command="lg" cwd="/home/elfenec/gitops"
             }
         }
     }
 
     tab name="Workstation" {
-        pane name="Monitor" command="ssh" {
+        pane name="monitor" command="ssh" {
             args "-t" "elfenec@pop-os" "btop"
         }
     }
 
     tab name="Workspace" {
         pane split_direction="vertical" {
-            pane name="Dotfiles Explorer" cwd="~/dotfiles" size="30%"
-            pane name="Devbox Shell" cwd="~/dotfiles"
+            pane name="devbox" command="y" cwd="/home/elfenec/dotfiles"
+            pane name="github" command="lg" cwd="/home/elfenec/dotfiles"
         }
     }
 }
+

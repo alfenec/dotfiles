@@ -57,48 +57,66 @@ fi
 ###############################################
 # 4. Powerlevel10k (Installation sans Git si possible)
 ###############################################
-if [ ! -d "$DOTFILES_DIR/powerlevel10k" ]; then
+P10K_DIR="$DOTFILES_DIR/zsh/powerlevel10k"
+if [ ! -d "$P10K_DIR" ]; then
     echo "🎨 Installing powerlevel10k..."
-    # On utilise curl pour rester "stateless" et léger
-    mkdir -p "$DOTFILES_DIR/powerlevel10k"
+    mkdir -p "$P10K_DIR"
     curl -L https://github.com/romkatv/powerlevel10k/archive/refs/heads/master.tar.gz | \
-    tar -xz -C "$DOTFILES_DIR/powerlevel10k" --strip-components=1
+    tar -xz -C "$P10K_DIR" --strip-components=1
+fi
+
+################################################
+# 5. Devbox Install (Sync des packages)
+################################################
+echo "🧰 Synchronisation des packages Devbox..."
+DEVBOX_CONFIG_DIR="$DOTFILES_DIR/devbox"
+
+if [ -d "$DEVBOX_CONFIG_DIR" ]; then
+    echo "🧰 Synchronisation des packages Devbox..."
+    pushd "$DEVBOX_CONFIG_DIR" > /dev/null
+    devbox install
+    # CRITIQUE : On active l'environnement ici pour avoir accès à 'stow'
+    eval "$(devbox shellenv)"
+    popd > /dev/null
+else
+    echo "❌ Erreur : dossier $DEVBOX_CONFIG_DIR introuvable."
+    exit 1
 fi
 
 ###############################################
-# 5. Zsh config (Symlinks Idempotents)
+# 6. Automatisation de GNU Stow
 ###############################################
-link_file() {
-    local src="$1"
-    local dst="$2"
-    if [ -L "$dst" ]; then
-        rm "$dst" # On recrée le lien pour être sûr qu'il est à jour
-    elif [ -f "$dst" ]; then
-        mv "$dst" "${dst}.bak" # Backup si un vrai fichier existe
+if command -v stow >/dev/null 2>&1; then
+    echo "🔗 Création des liens symboliques via Stow..."
+
+    # ON ENLÈVE "ssh" DE CETTE LISTE
+    modules=("zsh" "nvim" "zellij" "yazi" "git")
+
+    for module in "${modules[@]}"; do
+        if [ -d "$DOTFILES_DIR/$module" ]; then
+            echo "  -> Setup $module..."
+            
+            # Nettoyage automatique
+            [ "$module" == "zsh" ] && rm -f "$HOME/.zshrc" "$HOME/.p10k.zsh"
+            [ "$module" == "git" ] && rm -f "$HOME/.gitconfig"
+
+            stow -R "$module"
+        fi
+    done
+
+    # Gestion MANUELLE et SÉCURISÉE du config SSH (optionnel)
+    if [ -f "$DOTFILES_DIR/ssh/.ssh/config" ]; then
+        echo "  -> Setup SSH config (link only)..."
+        mkdir -p "$HOME/.ssh"
+        # On ne lie que le fichier de config, pas tout le dossier
+        ln -sf "$DOTFILES_DIR/ssh/.ssh/config" "$HOME/.ssh/config"
     fi
-    ln -s "$src" "$dst"
-    echo "🔗 Link créé : $dst"
-}
-
-link_file "$DOTFILES_DIR/.zshrc"   "$HOME/.zshrc"
-link_file "$DOTFILES_DIR/.p10k.zsh" "$HOME/.p10k.zsh"
-
-###############################################
-# 6. Devbox Install (Sync des packages)
-###############################################
-echo "🧰 Synchronisation des packages Devbox..."
-devbox install
+fi
 
 ###############################################
 # 7. Finalisation
 ###############################################
 echo "🚀 Setup terminé !"
-
-if [ -d "$DOTFILES_DIR" ]; then
-    pushd "$DOTFILES_DIR" > /dev/null
-    eval "$(devbox shellenv)"
-    popd > /dev/null
-fi
 
 if command -v fastfetch >/dev/null 2>&1; then
     fastfetch
