@@ -1,0 +1,7 @@
+[user]
+	email = elfenec75@gmail.com
+	name = alfenec
+[pull]
+	rebase = false
+[credential]
+	helper = store

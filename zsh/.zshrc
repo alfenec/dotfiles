@@ -14,10 +14,9 @@ fi
 
 # Devbox global : on le charge AVANT le reste pour avoir accès aux binaires
 if [[ -z "$STARTUP_DONE" ]]; then
-  if command -v devbox >/dev/null 2>&1 && [[ -f ~/dotfiles/devbox.json ]]; then
-    pushd ~/dotfiles >/dev/null
-    eval "$(devbox shellenv)"
-    popd >/dev/null
+  if command -v devbox >/dev/null 2>&1; then
+    # On pointe directement vers le bon dossier où se trouve ton devbox.json
+    eval "$(devbox shellenv --config ~/dotfiles/devbox)"
   fi
 fi
 
@@ -51,7 +50,7 @@ export VISUAL="nvim"
 # =========================================
 P10K_DIR="$HOME/dotfiles/powerlevel10k"
 [[ -f "$P10K_DIR/powerlevel10k.zsh-theme" ]] && source "$P10K_DIR/powerlevel10k.zsh-theme"
-[[ -f "$HOME/dotfiles/.p10k.zsh" ]] && source "$HOME/dotfiles/.p10k.zsh"
+[[ -f "$HOME/dotfiles/zsh/.p10k.zsh" ]] && source "$HOME/dotfiles/zsh/.p10k.zsh"
 
 # Suggestions & Highlighting
 [ -f "$HOME/.nix-profile/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ] && \
@@ -99,3 +98,9 @@ if [[ -o interactive ]] && [[ -z "$STARTUP_DONE" ]]; then
 fi
 
 export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border"
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# To customize prompt, run `p10k configure` or edit ~/dotfiles/zsh/.p10k.zsh.
+[[ ! -f ~/dotfiles/zsh/.p10k.zsh ]] || source ~/dotfiles/zsh/.p10k.zsh

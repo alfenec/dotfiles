@@ -1,0 +1,38 @@
+layout {
+    default_tab_template {
+        // Barre du HAUT (Onglets uniquement)
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+        children
+        // Barre du BAS (Options et aide à la navigation)
+        pane size=2 borderless=true {
+            plugin location="zellij:status-bar"
+        }
+    }
+
+    tab name="Control-Plane" focus=true {
+        pane split_direction="vertical" {
+            pane name="Tools" stacked=true {
+                pane name="k3s" cwd="~/gitops"
+                pane name="k9s" command="k9s" cwd="~/gitops"
+            }
+            pane name="GuideLine" command="nvim" cwd="~/gitops" {
+                args "README.md"
+            }
+        }
+    }
+
+    tab name="Workstation" {
+        pane name="Monitor" command="ssh" {
+            args "-t" "elfenec@pop-os" "btop"
+        }
+    }
+
+    tab name="Workspace" {
+        pane split_direction="vertical" {
+            pane name="Dotfiles Explorer" cwd="~/dotfiles" size="30%"
+            pane name="Devbox Shell" cwd="~/dotfiles"
+        }
+    }
+}
