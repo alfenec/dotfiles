@@ -48,16 +48,19 @@ export VISUAL="nvim"
 # =========================================
 # 3. Thème & Plugins visuels
 # =========================================
-P10K_DIR="$HOME/dotfiles/powerlevel10k"
+P10K_DIR="$HOME/dotfiles/zsh/powerlevel10k"
 [[ -f "$P10K_DIR/powerlevel10k.zsh-theme" ]] && source "$P10K_DIR/powerlevel10k.zsh-theme"
 [[ -f "$HOME/dotfiles/zsh/.p10k.zsh" ]] && source "$HOME/dotfiles/zsh/.p10k.zsh"
 
-# Suggestions & Highlighting
-[ -f "$HOME/.nix-profile/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ] && \
-  source "$HOME/.nix-profile/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
-[ -f "$HOME/.nix-profile/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ] && \
-  source "$HOME/.nix-profile/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+# Autosuggestions
+export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
+[ -f "$HOME/dotfiles/devbox/.devbox/nix/profile/default/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ] && \
+  source "$HOME/dotfiles/devbox/.devbox/nix/profile/default/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+bindkey '^E' autosuggest-accept
 
+# Syntax highlighting (toujours en dernier)
+[ -f "$HOME/dotfiles/devbox/.devbox/nix/profile/default/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ] && \
+  source "$HOME/dotfiles/devbox/.devbox/nix/profile/default/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 # =========================================
 # 4. Alias (ls, k8s, etc.)
 # =========================================
