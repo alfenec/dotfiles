@@ -48,9 +48,9 @@ export VISUAL="nvim"
 # =========================================
 # 3. Thème & Plugins visuels
 # =========================================
-P10K_DIR="$HOME/dotfiles/zsh/powerlevel10k"
-[[ -f "$P10K_DIR/powerlevel10k.zsh-theme" ]] && source "$P10K_DIR/powerlevel10k.zsh-theme"
-[[ -f "$HOME/dotfiles/zsh/.p10k.zsh" ]] && source "$HOME/dotfiles/zsh/.p10k.zsh"
+P10K_DIR="$HOME/dotfiles/zsh"
+[[ -f "$P10K_DIR/powerlevel10k/powerlevel10k.zsh-theme" ]] && source "$P10K_DIR/powerlevel10k/powerlevel10k.zsh-theme"
+[[ -f "$P10K_DIR/.p10k.zsh" ]] && source "$P10K_DIR/.p10k.zsh"
 
 # Autosuggestions
 export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'

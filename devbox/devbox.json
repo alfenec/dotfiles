@@ -35,6 +35,8 @@
     "ncurses@latest", // Bibliothèque pour interfaces terminal
     "opencode@latest",
     "age@latest",
-    "stow@latest", // Assistant CLI pour développement
+    "stow@latest",
+    "zsh-autosuggestions@latest",
+    "zsh-syntax-highlighting@latest", // Assistant CLI pour développement
   ],
 }
