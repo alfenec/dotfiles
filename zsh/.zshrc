@@ -79,7 +79,7 @@ alias t3='tree -L 3'
 alias t='task'
 alias ns='kubens'
 alias ctx='kubectx'
-alias mc='mcli'
+#alias mc='mcli'
 alias za='zellij attach'
 alias cc='clear'
 
