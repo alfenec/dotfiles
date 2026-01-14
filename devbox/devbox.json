@@ -37,6 +37,8 @@
     "age@latest",
     "stow@latest",
     "zsh-autosuggestions@latest",
-    "zsh-syntax-highlighting@latest", // Assistant CLI pour développement
+    "zsh-syntax-highlighting@latest",
+    "cmatrix@latest",
+    "ansible@latest", // Assistant CLI pour développement
   ],
 }

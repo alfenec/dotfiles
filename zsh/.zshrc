@@ -82,6 +82,7 @@ alias ctx='kubectx'
 #alias mc='mcli'
 alias za='zellij attach'
 alias cc='clear'
+alias ma='cmatrix -a -b -u 2'
 
 # =========================================
 # 5. Startup Interactive (Clear & Welcome)

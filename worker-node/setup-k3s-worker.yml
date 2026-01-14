@@ -1,0 +1,57 @@
+---
+- name: Ubuntu → NVIDIA Worker Node pour K3s cluster
+  hosts: k3s_nodes  
+  become: true
+  vars:
+    k3s_server_url: "https://192.168.1.114:6443"
+    k3s_token: "K1050c3f5d63e5605210aea3454f51febff705ac89459c49dee191e4d37421f8f51::server:77d0b9aad2daa9c4affa5768f3eadbdf"
+    
+  tasks:
+    - name: Update packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Disable swap
+      command: swapoff -a
+      when: ansible_swaptotal_mb > 0
+
+    - name: Comment swap in fstab  
+      replace:
+        path: /etc/fstab
+        regexp: '^(\s*[^#].*\s+swap\s+.*)$'
+        replace: '# \1'
+
+    - name: Install NVIDIA drivers RTX 4060
+      shell: ubuntu-drivers autoinstall  
+      notify: Reboot system
+
+    - name: Installer nvidia-ctk
+      environment:
+        NIX_PATH: "nixpkgs={{ lookup('file', '/etc/nixos/nixpkgs-channel.nix') }}"
+      command: nix-env -iA nixpkgs.nvidia-container-toolkit
+
+    - name: Configurer NVIDIA container runtime pour containerd
+      command: sudo nvidia-ctk runtime configure --runtime=containerd --set-as-default
+
+    - name: Redémarrer containerd et k3s-agent
+      systemd:
+        name: "{{ item }}"
+        state: restarted
+      loop:
+        - containerd
+        - k3s-agent
+
+    - name: Join K3s cluster as worker
+      shell: |
+        curl -sfL https://get.k3s.io | \
+        K3S_URL={{ k3s_server_url }} \
+        K3S_TOKEN={{ k3s_token }} sh -
+      args:
+        creates: /etc/rancher/k3s/k3s.yaml
+      notify: Reboot system 
+  
+  handlers:
+    - name: Reboot system
+      reboot:
+        reboot_timeout: 300
