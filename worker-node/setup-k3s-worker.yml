@@ -1,57 +1,124 @@
 ---
-- name: Ubuntu → NVIDIA Worker Node pour K3s cluster
-  hosts: k3s_nodes  
+- name: Ubuntu → NVIDIA GPU Worker for K3s (LLM-ready, official & pinned versions)
+  hosts: k3s_nodes
   become: true
   vars:
+    nvidia_driver_version: "580-server"
     k3s_server_url: "https://192.168.1.114:6443"
     k3s_token: "K1050c3f5d63e5605210aea3454f51febff705ac89459c49dee191e4d37421f8f51::server:77d0b9aad2daa9c4affa5768f3eadbdf"
-    
-  tasks:
-    - name: Update packages
+
+  pre_tasks:
+    - name: Update apt cache
       apt:
         update_cache: yes
-        upgrade: dist
+        cache_valid_time: 3600
 
-    - name: Disable swap
+    - name: Disable swap (runtime)
       command: swapoff -a
       when: ansible_swaptotal_mb > 0
 
-    - name: Comment swap in fstab  
+    - name: Disable swap permanently
       replace:
         path: /etc/fstab
         regexp: '^(\s*[^#].*\s+swap\s+.*)$'
         replace: '# \1'
 
-    - name: Install NVIDIA drivers RTX 4060
-      shell: ubuntu-drivers autoinstall  
-      notify: Reboot system
+  tasks:
+    # -----------------------------
+    # NVIDIA DRIVER (OFFICIAL UBUNTU SERVER VARIANT)
+    # -----------------------------
+    - name: Install NVIDIA server driver via ubuntu-drivers (GPGPU mode)
+      command: ubuntu-drivers install --gpgpu nvidia:{{ nvidia_driver_version }}
+      register: driver_install
+      changed_when: driver_install.rc == 0
 
-    - name: Installer nvidia-ctk
-      environment:
-        NIX_PATH: "nixpkgs={{ lookup('file', '/etc/nixos/nixpkgs-channel.nix') }}"
-      command: nix-env -iA nixpkgs.nvidia-container-toolkit
+    - name: Install NVIDIA utils (includes nvidia-smi)
+      apt:
+        name: "nvidia-utils-{{ nvidia_driver_version }}"
+        state: present
 
-    - name: Configurer NVIDIA container runtime pour containerd
-      command: sudo nvidia-ctk runtime configure --runtime=containerd --set-as-default
+    # Après installation driver (pour debug)
+    - name: Test nvidia-smi post-driver
+      command: nvidia-smi
+      register: nvidia_check
+      failed_when: false
+      changed_when: false
+    - name: Display nvidia-smi status
+      debug:
+        msg: "NVIDIA Driver status: {{ 'OK' if nvidia_check.rc == 0 else 'KO - manual reboot needed' }}"
 
-    - name: Redémarrer containerd et k3s-agent
-      systemd:
-        name: "{{ item }}"
-        state: restarted
-      loop:
-        - containerd
-        - k3s-agent
+    # -----------------------------
+    # NVIDIA CONTAINER TOOLKIT (PINNED VERSIONS)
+    # -----------------------------
+    - name: Install prerequisites for NVIDIA repo
+      apt:
+        name:
+          - curl
+          - gnupg
+        state: present
 
-    - name: Join K3s cluster as worker
+    - name: Add NVIDIA GPG key for container toolkit
+      shell: |
+        curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | \
+        gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+      args:
+        creates: /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+
+    - name: Enable experimental repository in NVIDIA Container Toolkit list
+      lineinfile:
+        path: /etc/apt/sources.list.d/nvidia-container-toolkit.list
+        regexp: '^#(.*experimental.*)$'
+        line: '\1'
+        backrefs: yes
+
+    - name: Update apt cache after adding NVIDIA repo
+      apt:
+        update_cache: yes
+
+    - name: Install specific version of NVIDIA Container Toolkit stack
+      apt:
+        name:
+          - "nvidia-container-toolkit=1.18.1-1"
+          - "nvidia-container-toolkit-base=1.18.1-1"
+          - "libnvidia-container-tools=1.18.1-1"
+          - "libnvidia-container1=1.18.1-1"
+        state: present
+        allow_downgrade: no
+        force: no
+
+    # -----------------------------
+    # DEPLOY K3S AGENT
+    # -----------------------------
+    - name: Install K3s agent
       shell: |
         curl -sfL https://get.k3s.io | \
         K3S_URL={{ k3s_server_url }} \
         K3S_TOKEN={{ k3s_token }} sh -
       args:
-        creates: /etc/rancher/k3s/k3s.yaml
-      notify: Reboot system 
-  
-  handlers:
-    - name: Reboot system
-      reboot:
-        reboot_timeout: 300
+        creates: /etc/systemd/system/k3s-agent.service
+
+    - name: Ensure k3s-agent is started and enabled
+      systemd:
+        name: k3s-agent
+        enabled: yes
+        state: started
+
+    # -----------------------------
+    # CONFIGURE CONTAINERD FOR NVIDIA
+    # -----------------------------
+    - name: Configure NVIDIA runtime for containerd
+      command: nvidia-ctk runtime configure --runtime=containerd
+      register: nvidia_ctk
+      changed_when: "'configuration updated' in nvidia_ctk.stdout or 'created' in nvidia_ctk.stdout"
+
+    - name: Restart containerd to apply NVIDIA runtime
+      systemd:
+        name: containerd
+        state: restarted
+      when: nvidia_ctk.changed
+    
+    - name: Restart k3s-agent après config containerd
+      systemd:
+        name: k3s-agent
+        state: restarted
+      when: nvidia_ctk.changed
