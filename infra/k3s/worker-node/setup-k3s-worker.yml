@@ -1,6 +1,6 @@
 ---
 - name: Ubuntu → NVIDIA GPU Worker for K3s (LLM-ready, official & pinned versions)
-  hosts: k3s_nodes
+  hosts: worker 
   become: true
   vars:
     nvidia_driver_version: "580-server"
@@ -85,6 +85,17 @@
         state: present
         allow_downgrade: no
         force: no
+
+    # -----------------------------
+    # BASE SYSTEM (K8S REQUIREMENTS)
+    # -----------------------------
+    - name: Install required system packages
+      apt:
+        name:
+          - curl
+          - gnupg
+          - nfs-common
+        state: present
 
     # -----------------------------
     # DEPLOY K3S AGENT

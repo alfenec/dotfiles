@@ -1,6 +1,6 @@
 ✅ Installation K3s Worker (qui a fonctionné)
 
-ansible-playbook -i hosts.ini setup-k3s-worker.yml --ask-pass --ask-become-pass
+ansible-playbook -i /home/elfenec/dotfiles/infra/hosts.ini setup-k3s-worker.yml --ask-pass --ask-become-pass
 
 SSH password: → ***
 
