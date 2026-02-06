@@ -21,6 +21,15 @@ if [[ -z "$STARTUP_DONE" ]]; then
 fi
 
 # =========================================
+# 1.5 Activation automatique du groupe docker
+# =========================================
+# Permet d'utiliser docker sans sudo si l'utilisateur vient d'être ajouté au groupe
+if groups "$USER" | grep -qv "\bdocker\b"; then
+  # silencieux, mini-shell temporaire pour Docker
+  newgrp docker >/dev/null 2>&1
+fi
+
+# =========================================
 # 2. Options Zsh & Plugins
 # =========================================
 export HISTFILE="$HOME/.zsh_history"
